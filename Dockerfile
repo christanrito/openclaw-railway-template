@@ -17,7 +17,7 @@ RUN curl -fsSL https://bun.sh/install | bash
 ENV PATH="/root/.bun/bin:${PATH}"
 
 RUN corepack enable
-RUN ln -sf /root/.bun/bin/bun /usr/local/bin/bun
+RUN rm -rf /usr/local/bin/bun && ln -s /root/.bun/bin/bun /usr/local/bin/bun
 
 WORKDIR /openclaw
 
