@@ -15,7 +15,7 @@ RUN apt-get update \
 # Install Bun (openclaw build uses it)
 RUN curl -fsSL https://bun.sh/install | bash
 ENV PATH="/root/.bun/bin:${PATH}"
-RUN ln -s /root/.bun/bin/bun /usr/local/bin/bun
+# RUN ln -s /root/.bun/bin/bun /usr/local/bin/bun
 
 RUN corepack enable
 RUN ln -sf /root/.bun/bin/bun /usr/local/bin/bun
