@@ -18,6 +18,7 @@ ENV PATH="/root/.bun/bin:${PATH}"
 RUN ln -s /root/.bun/bin/bun /usr/local/bin/bun
 
 RUN corepack enable
+RUN ln -s /root/.bun/bin/bun /usr/local/bin/bun
 
 WORKDIR /openclaw
 
