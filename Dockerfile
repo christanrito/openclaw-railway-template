@@ -1,4 +1,4 @@
-# Build openclaw from source to avoid npm packaging gaps (some dist files are not shipped).
+# Build openclaw from source
 FROM node:22-bookworm AS openclaw-build
 
 # Dependencies needed for openclaw build
@@ -12,22 +12,11 @@ RUN apt-get update \
     g++ \
   && rm -rf /var/lib/apt/lists/*
 
-# Install Bun (openclaw build uses it)
-RUN curl -fsSL https://bun.sh/install | bash
-ENV PATH="/root/.bun/bin:${PATH}"
-
-RUN corepack enable
-
+# 核心修正 1：直接通过 npm 全局安装 bun 和 pnpm，规避所有软链接和路径冲突
+RUN npm install -g bun pnpm
 
 WORKDIR /openclaw
 
-# OpenClaw version control:
-# - Set OPENCLAW_VERSION Railway variable to pin a specific tag/branch (e.g., v2026.2.15)
-# - If not set, auto-detects the latest stable release via 3-tier cascade:
-#     1. GitHub Releases API (/releases/latest) — excludes pre-releases and drafts
-#     2. git ls-remote --sort=-v:refname — latest stable tag by version sort
-#     3. main branch (final fallback, with warning — may be unstable)
-# - Can also override locally with --build-arg OPENCLAW_VERSION=<tag>
 ARG OPENCLAW_VERSION
 RUN set -eu; \
   if [ -n "${OPENCLAW_VERSION:-}" ]; then \
@@ -59,19 +48,11 @@ RUN set -eu; \
   fi; \
   git clone --depth 1 --branch "${REF}" https://github.com/openclaw/openclaw.git .
 
-# Patch: relax version requirements for packages that may reference unpublished versions.
-# Apply to all extension package.json files to handle workspace protocol (workspace:*).
-# RUN set -eux; \
-#  find ./extensions -name 'package.json' -type f | while read -r f; do \
-#    sed -i -E 's/"openclaw"[[:space:]]*:[[:space:]]*">=[^"]+"/"openclaw": "*"/g' "$f"; \
-#    sed -i -E 's/"openclaw"[[:space:]]*:[[:space:]]*"workspace:[^"]+"/"openclaw": "*"/g' "$f"; \
-#  done
-
+# 核心修正 2：保持依赖补丁处于被移除/注释状态，防止 404 错误
 RUN pnpm install --no-frozen-lockfile
 RUN pnpm build
 ENV OPENCLAW_PREFER_PNPM=1
 RUN pnpm ui:install && pnpm ui:build
-
 
 # Runtime image
 FROM node:22-bookworm
@@ -91,18 +72,20 @@ RUN apt-get update \
 WORKDIR /app
 
 # Wrapper deps
-RUN corepack enable
+RUN npm install -g pnpm
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod --frozen-lockfile && pnpm store prune
 
 # Copy built openclaw
 COPY --from=openclaw-build /openclaw /openclaw
 
-# Provide an openclaw executable
+# 核心修正 3：增加 800MB 内存限制
 RUN printf '%s\n' '#!/usr/bin/env bash' 'exec node --max-old-space-size=800 /openclaw/dist/entry.js "$@"' > /usr/local/bin/openclaw \
   && chmod +x /usr/local/bin/openclaw
 
 COPY src ./src
+
+# 核心修正 4：确保授权命令紧跟在复制命令之后
 COPY entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh
 
