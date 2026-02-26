@@ -105,6 +105,7 @@ RUN printf '%s\n' '#!/usr/bin/env bash' 'exec node --max-old-space-size=800 /ope
 
 COPY src ./src
 COPY entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
 
 # Create openclaw user, set up directories, install Homebrew as that user
 RUN useradd -m -s /bin/bash openclaw \
