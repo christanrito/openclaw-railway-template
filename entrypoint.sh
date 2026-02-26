@@ -27,4 +27,4 @@ fi
 
 # exec gosu openclaw node --max-old-space-size=800 src/server.js
 # 强制让 node 监听所有接口，并直接指定端口 8080
-exec gosu openclaw node --max-old-space-size=800 src/server.js --host 0.0.0.0 --port 8080
+exec gosu openclaw node --max-old-space-size=800 src/server.js --host 0.0.0.0
