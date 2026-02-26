@@ -6,9 +6,9 @@
     "node": ">=24"
   },
   "scripts": {
-    "dev": "node src/server.js",
-    "start": "node --max-old-space-size=800 src/server.js",
-    "lint": "node -c src/server.js"
+  "dev": "node --max-old-space-size=800 src/server.js",
+  "start": "node --max-old-space-size=800 src/server.js",
+  "lint": "node -c src/server.js"
   },
   "dependencies": {
     "express": "^5.1.0",
