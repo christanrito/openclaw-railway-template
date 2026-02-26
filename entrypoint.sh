@@ -25,4 +25,4 @@ else
   fi
 fi
 
-exec gosu openclaw node src/server.js
+exec gosu openclaw node --max-old-space-size=800 src/server.js
